@@ -1,30 +1,7 @@
-import os
-
-from src import data_utils
 from experiment import utils
+from src import data_utils
 
 logger = utils.get_logger("predict")
-
-
-def get_predictions(rec_model, test_df, predictions_filename):
-    # calculate
-    predictions = rec_model.predict(test_df)
-    test_df['prediction'] = predictions
-
-    # write
-    predictions_df = test_df.sort_values(by=['user_id', 'prediction'], ascending=[True, False])
-    predictions_df = predictions_df[['user_id', 'item_id', 'prediction']]
-    predictions_df.to_csv(path_or_buf=os.path.join(data_utils.DEFAULT_OUTPUT_FOLDER, predictions_filename),
-                          sep='\t', index=False, header=True)
-
-
-def get_recs(rec_model, selected_users, recs_filename):
-    # calculate
-    recs = rec_model.recommend(selected_users)
-
-    # write
-    recs.to_csv(path_or_buf=os.path.join(data_utils.DEFAULT_OUTPUT_FOLDER, recs_filename),
-                sep='\t', index=False, header=True)
 
 
 def main():
@@ -36,13 +13,17 @@ def main():
     dataset = data_utils.load_data()
     rec_model = data_utils.load_dump(exp_setup.rec_name)
 
-    # calculate
+    # calculate predictions
     logger.info("Generate predictions")
-    get_predictions(rec_model, dataset.test_df, "predictions-{}".format(exp_setup.rec_name))
+    predictions = rec_model.predict(dataset.test_df)
+    dataset.test_df['prediction'] = predictions
+    data_utils.save_predictions(dataset.test_df, exp_setup.rec_name)
 
+    # calculate recs
     logger.info("Generate recommendations")
     selected_users = ["1"]
-    get_recs(rec_model, selected_users, "recs-{}".format(exp_setup.rec_name))
+    recs = rec_model.recommend(selected_users)
+    data_utils.save_recs(recs, exp_setup.rec_name)
 
 
 if __name__ == "__main__":

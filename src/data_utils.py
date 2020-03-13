@@ -12,6 +12,9 @@ HOME = os.path.join(expanduser("~"), "sac2019")
 DEFAULT_DATA_FOLDER = os.path.join(HOME, "data")
 DEFAULT_OUTPUT_FOLDER = os.path.join(HOME, "output")
 
+predictions_filename = "predictions"
+recs_filename = "recs"
+
 
 def load_data():
     # read
@@ -31,6 +34,36 @@ def load_data():
     test_df = test_df.drop(columns=["rating"])
 
     return Dataset(training_df, y_train, test_df, y_test, item_info_wide)
+
+
+def load_predictions(rec_name):
+    input_filename = "{}-{}".format(predictions_filename, rec_name)
+    predictions_df = pd.read_csv(os.path.join(DEFAULT_OUTPUT_FOLDER, input_filename), sep="\t",
+                                 dtype={"user_id": str, "item_id": str})
+
+    return predictions_df
+
+
+def load_recs(rec_name):
+    input_filename = "{}-{}".format(recs_filename, rec_name)
+    recs_df = pd.read_csv(os.path.join(DEFAULT_OUTPUT_FOLDER, input_filename), sep="\t",
+                          dtype={"user_id": str, "item_id": str})
+
+    return recs_df
+
+
+def save_recs(df, rec_name):
+    output_filename = "{}-{}".format(recs_filename, rec_name)
+    df.to_csv(path_or_buf=os.path.join(DEFAULT_OUTPUT_FOLDER, output_filename), sep='\t', index=False, header=True)
+
+
+def save_predictions(df, rec_name):
+    output_filename = "{}-{}".format(predictions_filename, rec_name)
+
+    predictions_df = df.sort_values(by=['user_id', 'prediction'], ascending=[True, False])
+    predictions_df = predictions_df[['user_id', 'item_id', 'prediction']]
+    predictions_df.to_csv(path_or_buf=os.path.join(DEFAULT_OUTPUT_FOLDER, output_filename),
+                          sep='\t', index=False, header=True)
 
 
 def write_dump(rec_model, output_filename):
