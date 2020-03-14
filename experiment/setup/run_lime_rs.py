@@ -1,11 +1,11 @@
 import json
 import os
+
 import numpy as np
 import pandas as pd
 
 from experiment import utils
 from src import data_utils
-from src.dataset import Dataset
 from src.lime_rs import LimeRSExplainer
 
 logger = utils.get_logger("limers")
@@ -34,7 +34,6 @@ def generate_explanations(instances_to_explain, explainer, rec_model, feature_ty
     for instance in instances_to_explain.itertuples(index=False):
         logger.info("explaining-> (user: {}, item: {})".format(instance.user_id, instance.item_id))
 
-        # rec_value = rec.prediction
         exp = explainer.explain_instance(instance,
                                          rec_model,
                                          neighborhood_entity="item",
