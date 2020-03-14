@@ -11,19 +11,19 @@ from src.lime_rs import LimeRSExplainer
 logger = utils.get_logger("limers")
 
 
-def extract_features(explanation_all_ids, feature_type, feature_map, feature_names):
+def extract_features(explanation_all_ids, feature_type, feature_map):
     filtered_dict = dict()
     if feature_type == "features":
         for tup in explanation_all_ids:
             if not (feature_map[tup[0]].startswith('user_id') or
                     feature_map[tup[0]].startswith('item_id')):
-                filtered_dict[feature_names[tup[0]]]: round(tup[1], 3)
+                filtered_dict[feature_map[tup[0]]] = round(tup[1], 3)
 
     elif feature_type == "item":
         top_features = 500
         for tup in explanation_all_ids:
             if feature_map[tup[0]].startswith('item_id') and len(filtered_dict <= top_features):
-                filtered_dict[feature_names[tup[0]]]: round(tup[1], 3)
+                filtered_dict[feature_map[tup[0]]] = round(tup[1], 3)
 
     return filtered_dict
 
@@ -38,12 +38,11 @@ def generate_explanations(instances_to_explain, explainer, rec_model, feature_ty
                                          rec_model,
                                          neighborhood_entity="item",
                                          labels=[0],
-                                         num_samples=100)
+                                         num_samples=1000)
 
         # filter
         filtered_features = extract_features(exp.local_exp[0],
                                              feature_type=feature_type,
-                                             feature_names=explainer.feature_names,
                                              feature_map=explainer.feature_map)
         #
         explanation_str = json.dumps(filtered_features)
@@ -80,7 +79,7 @@ def main():
 
     # save
     logger.info("Save LimeRS explanations")
-    output_filename = "limers_explanations".format(exp_setup.rec_name)
+    output_filename = "limers_explanations-{}".format(exp_setup.rec_name)
     explanations.to_csv(path_or_buf=os.path.join(data_utils.DEFAULT_OUTPUT_FOLDER, output_filename),
                         sep='\t', index=False, header=True)
 
