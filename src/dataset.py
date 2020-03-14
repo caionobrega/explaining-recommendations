@@ -16,6 +16,7 @@ class Dataset:
         df_ohe = pd.get_dummies(df)
         if columns is not None:
             df_ohe = df_ohe.reindex(columns=columns)
+            df_ohe = df_ohe.fillna(0)
         data_sparse = sparse.csr_matrix(df_ohe.astype(np.float))
         data_sparse = data_sparse.astype(np.float)
 
